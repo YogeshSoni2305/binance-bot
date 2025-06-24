@@ -103,7 +103,8 @@ poetry run python -m src.binance_bot.cli market --symbol BTCUSDT --side BUY --qu
 ### 3. Place Limit Order
 
 ```bash
-poetry run python -m src.binance_bot.cli limit --symbol BTCUSDT --side BUY --quantity 0.001 --price 59000
+poetry run python -m src.binance_bot.cli limit --symbol BTCUSDT --side BUY --quantity 0.002 --price 59000
+
 ```
 
 ### 4. Place Stop-Limit Order

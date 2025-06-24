@@ -1,4 +1,3 @@
-
 import click
 from typing import Dict
 from .bot import TradingBot
@@ -6,14 +5,6 @@ from .config import load_config
 from .logger import setup_logging
 
 def format_order(order: Dict) -> str:
-    """Format order details for CLI output.
-
-    Args:
-        order: Order response from Binance API.
-
-    Returns:
-        Formatted order details.
-    """
     return (
         f"Order Placed:\n"
         f"- Type: {order.get('type', 'N/A')}\n"
@@ -33,12 +24,13 @@ def cli():
 @click.option('--symbol', required=True, help='Trading pair (e.g., BTCUSDT)')
 @click.option('--side', required=True, type=click.Choice(['BUY', 'SELL'], case_sensitive=False), help='Order side')
 @click.option('--quantity', required=True, type=float, help='Order quantity')
-def market(symbol: str, side: str, quantity: float):
+@click.option('--reduce-only', is_flag=True, help='Set reduceOnly=True to bypass notional minimum')
+def market(symbol: str, side: str, quantity: float, reduce_only: bool):
     """Place a market order."""
     config = load_config()
     bot = TradingBot(config['api_key'], config['api_secret'], testnet=True)
     try:
-        order = bot.place_market_order(symbol, side, quantity)
+        order = bot.place_market_order(symbol, side, quantity, reduce_only)
         click.echo(format_order(order))
     except Exception as e:
         click.echo(f"Error placing market order: {e}", err=True)
@@ -48,12 +40,13 @@ def market(symbol: str, side: str, quantity: float):
 @click.option('--side', required=True, type=click.Choice(['BUY', 'SELL'], case_sensitive=False), help='Order side')
 @click.option('--quantity', required=True, type=float, help='Order quantity')
 @click.option('--price', required=True, type=float, help='Limit price')
-def limit(symbol: str, side: str, quantity: float, price: float):
+@click.option('--reduce-only', is_flag=True, help='Set reduceOnly=True to bypass notional minimum')
+def limit(symbol: str, side: str, quantity: float, price: float, reduce_only: bool):
     """Place a limit order."""
     config = load_config()
     bot = TradingBot(config['api_key'], config['api_secret'], testnet=True)
     try:
-        order = bot.place_limit_order(symbol, side, quantity, price)
+        order = bot.place_limit_order(symbol, side, quantity, price, reduce_only)
         click.echo(format_order(order))
     except Exception as e:
         click.echo(f"Error placing limit order: {e}", err=True)
@@ -64,12 +57,13 @@ def limit(symbol: str, side: str, quantity: float, price: float):
 @click.option('--quantity', required=True, type=float, help='Order quantity')
 @click.option('--stop-price', required=True, type=float, help='Stop price')
 @click.option('--limit-price', required=True, type=float, help='Limit price')
-def stop_limit(symbol: str, side: str, quantity: float, stop_price: float, limit_price: float):
+@click.option('--reduce-only', is_flag=True, help='Set reduceOnly=True to bypass notional minimum')
+def stop_limit(symbol: str, side: str, quantity: float, stop_price: float, limit_price: float, reduce_only: bool):
     """Place a stop-limit order."""
     config = load_config()
     bot = TradingBot(config['api_key'], config['api_secret'], testnet=True)
     try:
-        order = bot.place_stop_limit(symbol, side, quantity, stop_price, limit_price)
+        order = bot.place_stop_limit(symbol, side, quantity, stop_price, limit_price, reduce_only)
         click.echo(format_order(order))
     except Exception as e:
         click.echo(f"Error placing stop-limit order: {e}", err=True)
