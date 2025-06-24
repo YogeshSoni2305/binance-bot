@@ -368,3 +368,14 @@
 2025-06-24 07:57:16,962 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): testnet.binancefuture.com:443
 2025-06-24 07:57:17,207 - urllib3.connectionpool - DEBUG - https://testnet.binancefuture.com:443 "GET /fapi/v1/openOrders?recvWindow=10000&symbol=BTCUSDT&timestamp=1750751836960&signature=94ebc659d46da1e4f972bb667fec8dc55b4fa1e22105b7a8bcad6cb1651b2673 HTTP/11" 200 None
 2025-06-24 07:57:17,208 - src.binance_bot.bot - DEBUG - Fetched 4 open orders
+2025-06-24 08:07:49,875 - asyncio - DEBUG - Using selector: EpollSelector
+2025-06-24 08:07:49,876 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): testnet.binance.vision:443
+2025-06-24 08:07:50,043 - urllib3.connectionpool - DEBUG - https://testnet.binance.vision:443 "GET /api/v3/ping HTTP/11" 200 2
+2025-06-24 08:07:50,044 - src.binance_bot.bot - INFO - Binance client initialized for testnet=True
+2025-06-24 08:07:50,044 - src.binance_bot.bot - DEBUG - Futures API URL: https://testnet.binancefuture.com/fapi
+2025-06-24 08:07:50,187 - urllib3.connectionpool - DEBUG - https://testnet.binance.vision:443 "GET /api/v3/exchangeInfo HTTP/11" 200 53871
+2025-06-24 08:07:50,218 - src.binance_bot.bot - DEBUG - Validated symbol: BTCUSDT
+2025-06-24 08:07:50,220 - src.binance_bot.bot - DEBUG - Placing stop-limit order: symbol=BTCUSDT, side=SELL, quantity=0.001, stopPrice=60000.0, limitPrice=59900.0
+2025-06-24 08:07:50,221 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): testnet.binancefuture.com:443
+2025-06-24 08:07:50,593 - urllib3.connectionpool - DEBUG - https://testnet.binancefuture.com:443 "POST /fapi/v1/order HTTP/11" 200 None
+2025-06-24 08:07:50,594 - src.binance_bot.bot - INFO - Placed stop-limit order: orderId=4678321558
