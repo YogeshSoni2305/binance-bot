@@ -77,11 +77,11 @@ Options:
 
 Commands:
   balance       Check futures account balance
-  cancel_order  Cancel an open order by ID
+  cancel-order  Cancel an open order by ID
   limit         Place a limit order
   market        Place a market order
-  open_orders   List open orders for a symbol
-  stop_limit    Place a stop-limit order
+  open-orders   List open orders for a symbol
+  stop-limit    Place a stop-limit order
 ```
 
 ---
@@ -110,7 +110,7 @@ poetry run python -m src.binance_bot.cli limit --symbol BTCUSDT --side BUY --qua
 ### 4. Place Stop-Limit Order
 
 ```bash
-poetry run python -m src.binance_bot.cli stop_limit \
+poetry run python -m src.binance_bot.cli stop-limit \
   --symbol BTCUSDT --side SELL --quantity 0.001 \
   --stop-price 60000 --limit-price 59900 --reduce-only
 ```
@@ -118,13 +118,13 @@ poetry run python -m src.binance_bot.cli stop_limit \
 ### 5. List Open Orders
 
 ```bash
-poetry run python -m src.binance_bot.cli open_orders --symbol BTCUSDT
+poetry run python -m src.binance_bot.cli open-orders --symbol BTCUSDT
 ```
 
 ### 6. Cancel an Order
 
 ```bash
-poetry run python -m src.binance_bot.cli cancel_order --symbol BTCUSDT --order-id <order_id>
+poetry run python -m src.binance_bot.cli cancel-order --symbol BTCUSDT --order-id <order_id>
 ```
 
 ### 7. Check Symbol Precision

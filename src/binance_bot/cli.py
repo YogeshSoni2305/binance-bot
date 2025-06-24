@@ -1,125 +1,69 @@
 import click
-from typing import Dict
+from dotenv import load_dotenv
+import os
+
 from .bot import TradingBot
 from .config import load_config
-from .logger import setup_logging
 
-def format_order(order: Dict) -> str:
-    return (
-        f"Order Placed:\n"
-        f"- Type: {order.get('type', 'N/A')}\n"
-        f"- Symbol: {order.get('symbol', 'N/A')}\n"
-        f"- Side: {order.get('side', 'N/A')}\n"
-        f"- Quantity: {order.get('origQty', order.get('quantity', 'N/A'))}\n"
-        f"- Status: {order.get('status', 'N/A')}\n"
-        f"- Order ID: {order.get('orderId', 'N/A')}"
-    )
+load_dotenv()
+config = load_config()
 
 @click.group()
 def cli():
-    """Binance Futures Trading Bot CLI."""
-    setup_logging()
+    """Binance Futures CLI Trading Bot"""
+    pass
 
-@cli.command()
-@click.option('--symbol', required=True, help='Trading pair (e.g., BTCUSDT)')
-@click.option('--side', required=True, type=click.Choice(['BUY', 'SELL'], case_sensitive=False), help='Order side')
-@click.option('--quantity', required=True, type=float, help='Order quantity')
-@click.option('--reduce-only', is_flag=True, help='Set reduceOnly=True to bypass notional minimum')
-def market(symbol: str, side: str, quantity: float, reduce_only: bool):
-    """Place a market order."""
-    config = load_config()
-    bot = TradingBot(config['api_key'], config['api_secret'], testnet=True)
-    try:
-        order = bot.place_market_order(symbol, side, quantity, reduce_only)
-        click.echo(format_order(order))
-    except Exception as e:
-        click.echo(f"Error placing market order: {e}", err=True)
-
-@cli.command()
-@click.option('--symbol', required=True, help='Trading pair (e.g., BTCUSDT)')
-@click.option('--side', required=True, type=click.Choice(['BUY', 'SELL'], case_sensitive=False), help='Order side')
-@click.option('--quantity', required=True, type=float, help='Order quantity')
-@click.option('--price', required=True, type=float, help='Limit price')
-@click.option('--reduce-only', is_flag=True, help='Set reduceOnly=True to bypass notional minimum')
-def limit(symbol: str, side: str, quantity: float, price: float, reduce_only: bool):
-    """Place a limit order."""
-    config = load_config()
-    bot = TradingBot(config['api_key'], config['api_secret'], testnet=True)
-    try:
-        order = bot.place_limit_order(symbol, side, quantity, price, reduce_only)
-        click.echo(format_order(order))
-    except Exception as e:
-        click.echo(f"Error placing limit order: {e}", err=True)
-
-@cli.command(name='stop_limit')
-@click.option('--symbol', required=True, help='Trading pair (e.g., BTCUSDT)')
-@click.option('--side', required=True, type=click.Choice(['BUY', 'SELL'], case_sensitive=False), help='Order side')
-@click.option('--quantity', required=True, type=float, help='Order quantity')
-@click.option('--stop-price', required=True, type=float, help='Stop price')
-@click.option('--limit-price', required=True, type=float, help='Limit price')
-@click.option('--reduce-only', is_flag=True, help='Set reduceOnly=True to bypass notional minimum')
-def stop_limit(symbol: str, side: str, quantity: float, stop_price: float, limit_price: float, reduce_only: bool):
-    """Place a stop-limit order."""
-    config = load_config()
-    bot = TradingBot(config['api_key'], config['api_secret'], testnet=True)
-    try:
-        order = bot.place_stop_limit(symbol, side, quantity, stop_price, limit_price, reduce_only)
-        click.echo(format_order(order))
-    except Exception as e:
-        click.echo(f"Error placing stop-limit order: {e}", err=True)
-
-@cli.command()
+@cli.command(help="Check futures account balance")
 def balance():
-    """Check futures account balance."""
-    config = load_config()
-    bot = TradingBot(config['api_key'], config['api_secret'], testnet=True)
-    try:
-        balance = bot.get_account_balance()
-        usdt = next((asset for asset in balance if asset['asset'] == 'USDT'), None)
-        if usdt:
-            click.echo(f"USDT Balance: {usdt['balance']} (Available: {usdt['availableBalance']})")
-        else:
-            click.echo("No USDT balance found")
-    except Exception as e:
-        click.echo(f"Error fetching balance: {e}", err=True)
+    bot = TradingBot(config["api_key"], config["api_secret"], testnet=True)
+    balance = bot.get_balance()
+    click.echo(f"USDT Balance: {balance['balance']} USDT")
 
-@cli.command(name='open_orders')
-@click.option('--symbol', required=True, help='Trading pair (e.g., BTCUSDT)')
-def open_orders(symbol: str):
-    """List open orders for a symbol."""
-    config = load_config()
-    bot = TradingBot(config['api_key'], config['api_secret'], testnet=True)
-    try:
-        orders = bot.get_open_orders(symbol)
-        if orders:
-            for order in orders:
-                click.echo(
-                    f"Open Order:\n"
-                    f"- Symbol: {order.get('symbol', 'N/A')}\n"
-                    f"- Type: {order.get('type', 'N/A')}\n"
-                    f"- Side: {order.get('side', 'N/A')}\n"
-                    f"- Quantity: {order.get('origQty', 'N/A')}\n"
-                    f"- Price: {order.get('price', 'N/A')}\n"
-                    f"- Stop Price: {order.get('stopPrice', 'N/A')}\n"
-                    f"- Order ID: {order.get('orderId', 'N/A')}"
-                )
-        else:
-            click.echo(f"No open orders for {symbol}")
-    except Exception as e:
-        click.echo(f"Error fetching open orders: {e}", err=True)
+@cli.command(name="market", help="Place a market order")
+@click.option("--symbol", required=True)
+@click.option("--side", required=True, type=click.Choice(["BUY", "SELL"]))
+@click.option("--quantity", required=True, type=float)
+def market(symbol, side, quantity):
+    bot = TradingBot(config["api_key"], config["api_secret"], testnet=True)
+    order = bot.place_market_order(symbol, side, quantity)
+    click.echo(order)
 
-@cli.command(name='cancel_order')
-@click.option('--symbol', required=True, help='Trading pair (e.g., BTCUSDT)')
-@click.option('--order-id', required=True, type=int, help='Order ID to cancel')
-def cancel_order(symbol: str, order_id: int):
-    """Cancel an open order by ID."""
-    config = load_config()
-    bot = TradingBot(config['api_key'], config['api_secret'], testnet=True)
-    try:
-        result = bot.cancel_order(symbol, order_id)
-        click.echo(f"Order {order_id} canceled for {symbol}")
-    except Exception as e:
-        click.echo(f"Error canceling order: {e}", err=True)
+@cli.command(name="limit", help="Place a limit order")
+@click.option("--symbol", required=True)
+@click.option("--side", required=True, type=click.Choice(["BUY", "SELL"]))
+@click.option("--quantity", required=True, type=float)
+@click.option("--price", required=True, type=float)
+def limit(symbol, side, quantity, price):
+    bot = TradingBot(config["api_key"], config["api_secret"], testnet=True)
+    order = bot.place_limit_order(symbol, side, quantity, price)
+    click.echo(order)
 
-if __name__ == '__main__':
+@cli.command(name="stop-limit", help="Place a stop-limit order")
+@click.option("--symbol", required=True)
+@click.option("--side", required=True, type=click.Choice(["BUY", "SELL"]))
+@click.option("--quantity", required=True, type=float)
+@click.option("--stop-price", required=True, type=float)
+@click.option("--limit-price", required=True, type=float)
+@click.option("--reduce-only", is_flag=True)
+def stop_limit(symbol, side, quantity, stop_price, limit_price, reduce_only):
+    bot = TradingBot(config["api_key"], config["api_secret"], testnet=True)
+    order = bot.place_stop_limit_order(symbol, side, quantity, stop_price, limit_price, reduce_only)
+    click.echo(order)
+
+@cli.command(name="open-orders", help="List open orders for a symbol")
+@click.option("--symbol", required=True)
+def open_orders(symbol):
+    bot = TradingBot(config["api_key"], config["api_secret"], testnet=True)
+    orders = bot.get_open_orders(symbol)
+    click.echo(orders)
+
+@cli.command(name="cancel-order", help="Cancel an order by ID")
+@click.option("--symbol", required=True)
+@click.option("--order-id", required=True, type=int)
+def cancel_order(symbol, order_id):
+    bot = TradingBot(config["api_key"], config["api_secret"], testnet=True)
+    result = bot.cancel_order(symbol, order_id)
+    click.echo(result)
+
+if __name__ == "__main__":
     cli()

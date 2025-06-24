@@ -1,14 +1,15 @@
 import logging
 import os
 
-def setup_logging() -> None:
-    """Configure logging to file and console."""
-    os.makedirs('logs', exist_ok=True)
-    logging.basicConfig(
-        level=logging.DEBUG,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.FileHandler('logs/bot.log'),
-            logging.StreamHandler()
-        ]
-    )
+LOG_FILE = os.path.join("logs", "bot.log")
+os.makedirs("logs", exist_ok=True)
+
+logging.basicConfig(
+    filename=LOG_FILE,
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+
+logger = logging.getLogger(__name__)
+
