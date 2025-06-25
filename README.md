@@ -98,6 +98,7 @@ poetry run python -m src.binance_bot.cli balance
 
 ```bash
 poetry run python -m src.binance_bot.cli market --symbol BTCUSDT --side BUY --quantity 0.001
+
 ```
 
 ### 3. Place Limit Order
@@ -111,8 +112,13 @@ poetry run python -m src.binance_bot.cli limit --symbol BTCUSDT --side BUY --qua
 
 ```bash
 poetry run python -m src.binance_bot.cli stop-limit \
-  --symbol BTCUSDT --side SELL --quantity 0.001 \
-  --stop-price 60000 --limit-price 59900 --reduce-only
+  --symbol BTCUSDT \
+  --side SELL \
+  --quantity 0.001 \
+  --price 59900 \
+  --stop-price 60000 \
+  --reduce-only
+
 ```
 
 ### 5. List Open Orders
@@ -130,7 +136,9 @@ poetry run python -m src.binance_bot.cli cancel-order --symbol BTCUSDT --order-i
 ### 7. Check Symbol Precision
 
 ```bash
-poetry run python -c "from src.binance_bot.bot import TradingBot; from src.binance_bot.config import load_config; config = load_config(); bot = TradingBot(config['api_key'], config['api_secret'], testnet=True); info = bot.validate_symbol('BTCUSDT'); print(f'Precision: {info.get('quantityPrecision')} | Min Qty: {next((f for f in info['filters'] if f['filterType']=='LOT_SIZE'), {}).get('minQty')}')"
+poetry run python -c "from src.binance_bot.bot import TradingBot; bot = TradingBot(); info = bot.validate_symbol('BTCUSDT'); print(f\"Precision: {info.get('quantityPrecision')} | Min Qty: {next((f for f in info['filters'] if f['filterType']=='LOT_SIZE'), {}).get('minQty')}\")"
+
+
 ```
 
 ---

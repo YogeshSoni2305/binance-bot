@@ -1,69 +1,89 @@
-import click
-from dotenv import load_dotenv
-import os
+import typer
+from rich.console import Console
+from rich.table import Table
+from binance_bot.bot import TradingBot
+from binance.exceptions import BinanceAPIException
 
-from .bot import TradingBot
-from .config import load_config
+app = typer.Typer()
+console = Console()
 
-load_dotenv()
-config = load_config()
+bot = TradingBot()
 
-@click.group()
-def cli():
-    """Binance Futures CLI Trading Bot"""
-    pass
+@app.command("balance")
+def check_balance():
+    """Check futures account balance"""
+    balances = bot.get_balance()
+    for asset, balance in balances.items():
+        console.print(f"[cyan]{asset}[/cyan]: {balance}")
 
-@cli.command(help="Check futures account balance")
-def balance():
-    bot = TradingBot(config["api_key"], config["api_secret"], testnet=True)
-    balance = bot.get_balance()
-    click.echo(f"USDT Balance: {balance['balance']} USDT")
+@app.command("market")
+def place_market_order(
+    symbol: str = typer.Option(..., "--symbol"),
+    side: str = typer.Option(..., "--side"),
+    quantity: float = typer.Option(..., "--quantity"),
+):
+    """Place a market order"""
+    try:
+        bot.place_market_order(symbol, side.upper(), quantity)
+    except BinanceAPIException as e:
+        console.print(f"[red]Error:[/red] {e}")
 
-@cli.command(name="market", help="Place a market order")
-@click.option("--symbol", required=True)
-@click.option("--side", required=True, type=click.Choice(["BUY", "SELL"]))
-@click.option("--quantity", required=True, type=float)
-def market(symbol, side, quantity):
-    bot = TradingBot(config["api_key"], config["api_secret"], testnet=True)
-    order = bot.place_market_order(symbol, side, quantity)
-    click.echo(order)
+@app.command("limit")
+def place_limit_order(
+    symbol: str = typer.Option(..., "--symbol"),
+    side: str = typer.Option(..., "--side"),
+    quantity: float = typer.Option(..., "--quantity"),
+    price: float = typer.Option(..., "--price"),
+):
+    """Place a limit order"""
+    try:
+        bot.place_limit_order(symbol, side.upper(), quantity, price)
+    except BinanceAPIException as e:
+        console.print(f"[red]Error:[/red] {e}")
 
-@cli.command(name="limit", help="Place a limit order")
-@click.option("--symbol", required=True)
-@click.option("--side", required=True, type=click.Choice(["BUY", "SELL"]))
-@click.option("--quantity", required=True, type=float)
-@click.option("--price", required=True, type=float)
-def limit(symbol, side, quantity, price):
-    bot = TradingBot(config["api_key"], config["api_secret"], testnet=True)
-    order = bot.place_limit_order(symbol, side, quantity, price)
-    click.echo(order)
+@app.command("stop-limit")
+def place_stop_limit_order(
+    symbol: str = typer.Option(..., "--symbol"),
+    side: str = typer.Option(..., "--side"),
+    quantity: float = typer.Option(..., "--quantity"),
+    price: float = typer.Option(..., "--price", help="Limit price"),
+    stop_price: float = typer.Option(..., "--stop-price", help="Trigger price"),
+    reduce_only: bool = typer.Option(False, "--reduce-only", help="Reduce-only order"),
+):
+    """Place a stop-limit order"""
+    try:
+        bot.place_stop_limit_order(symbol, side.upper(), quantity, price, stop_price, reduce_only=reduce_only)
+    except typer.Exit:
+        pass  # Already logged
+    except BinanceAPIException as e:
+        console.print(f"[red]Error:[/red] {e}")
 
-@cli.command(name="stop-limit", help="Place a stop-limit order")
-@click.option("--symbol", required=True)
-@click.option("--side", required=True, type=click.Choice(["BUY", "SELL"]))
-@click.option("--quantity", required=True, type=float)
-@click.option("--stop-price", required=True, type=float)
-@click.option("--limit-price", required=True, type=float)
-@click.option("--reduce-only", is_flag=True)
-def stop_limit(symbol, side, quantity, stop_price, limit_price, reduce_only):
-    bot = TradingBot(config["api_key"], config["api_secret"], testnet=True)
-    order = bot.place_stop_limit_order(symbol, side, quantity, stop_price, limit_price, reduce_only)
-    click.echo(order)
+@app.command("open-orders")
+def list_open_orders(symbol: str = typer.Option(..., "--symbol")):
+    """List open orders for a symbol"""
+    try:
+        orders = bot.get_open_orders(symbol)
+        table = Table(title=f"Open Orders for {symbol}")
+        table.add_column("Order ID")
+        table.add_column("Side")
+        table.add_column("Price")
+        table.add_column("Qty")
+        for order in orders:
+            table.add_row(str(order["orderId"]), order["side"], order["price"], order["origQty"])
+        console.print(table)
+    except BinanceAPIException as e:
+        console.print(f"[red]Error:[/red] {e}")
 
-@cli.command(name="open-orders", help="List open orders for a symbol")
-@click.option("--symbol", required=True)
-def open_orders(symbol):
-    bot = TradingBot(config["api_key"], config["api_secret"], testnet=True)
-    orders = bot.get_open_orders(symbol)
-    click.echo(orders)
-
-@cli.command(name="cancel-order", help="Cancel an order by ID")
-@click.option("--symbol", required=True)
-@click.option("--order-id", required=True, type=int)
-def cancel_order(symbol, order_id):
-    bot = TradingBot(config["api_key"], config["api_secret"], testnet=True)
-    result = bot.cancel_order(symbol, order_id)
-    click.echo(result)
+@app.command("cancel-order")
+def cancel_order(
+    symbol: str = typer.Option(..., "--symbol"),
+    order_id: int = typer.Option(..., "--order-id"),
+):
+    """Cancel a specific order by ID"""
+    try:
+        bot.cancel_order(symbol, order_id)
+    except BinanceAPIException as e:
+        console.print(f"[red]Error:[/red] {e}")
 
 if __name__ == "__main__":
-    cli()
+    app()
