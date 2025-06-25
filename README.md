@@ -51,8 +51,8 @@ touch .env
 Add your Binance Testnet credentials:
 
 ```env
-API_KEY=your_key_here
-API_SECRET=your_secret_here
+BINANCE_API_KEY="##############################################"
+BINANCE_API_SECRET="###########################################"
 ```
 
 > ✅ `.env` is ignored in `.gitignore`
